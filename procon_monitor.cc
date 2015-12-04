@@ -18,12 +18,13 @@
 //#include "system.h"
 
 #include "synch.h"
-#include "ring.h"
+#include "ring_monitor.h"
 
-#define BUFF_SIZE 3  // the size of the round buffer
-#define N_PROD    2  // the number of producers 
-#define N_CONS    2  // the number of consumers
-#define N_MESSG   4  // the number of messages produced by each producer
+#define BUFF_SIZE 3 // the size of the round buffer
+#define N_PROD    2 // the number of producers 
+#define N_CONS   5  // the number of consumers
+#define N_MESSG   4
+  // the number of messages produced by each producer
 #define MAX_NAME  16 // the maximum lengh of a name
 
 #define MAXLEN	48 
@@ -69,22 +70,19 @@ Producer(int which)
 
     for (num = 0; num < N_MESSG ; num++) {
       // Put the code to prepare the message here.
-      
-      emptyBuffers.P();
-      mutex.P();
-      message = new slot(which, num);
+      // ...
+      //message = new slot(which, num);
+      // sprintf(str, "num --> %d; which --> %d;\n", num,which);
       message -> thread_id = which;
       message -> value = num;
-      
+
       // Put the code for synchronization before  ring->Put(message) here.
-    
+      // ...
+
       ring->Put(message);
 
       // Put the code for synchronization after  ring->Put(message) here.
-     
-      mutex.V();
-      fullBuffers.V();
-
+      // ...
     }
 }
 
@@ -119,16 +117,12 @@ Consumer(int which)
     for (; ; ) {
 
       // Put the code for synchronization before ring->Get(message) here.
-
-      fullBuffers.P();
-      mutex.P();
+      // ...
 
       ring->Get(message);
 
       // Put the code for synchronization after ring->Get(message) here.
-
-      mutex.V();
-      emptyBuffers.V();
+      // ...
 
       // form a string to record the message
       sprintf(str,"producer id --> %d; Message number --> %d;\n", 
@@ -155,10 +149,13 @@ void
 ProConTest()
 {
     int i;
+    // Producer *a = new Thread("prod_name[i]");
+    // Consumer *b = new Thread("prod_name[i]");
     DEBUG('t', "Entering ProConTest");
 
     // Put the code to construct a ring buffer object with size 
-    //BUFF_SIZE here.  
+    //BUFF_SIZE here.
+    // ...    
 
     ring = new Ring(BUFF_SIZE);
 
@@ -172,6 +169,7 @@ ProConTest()
       // Put the code to create and fork a new producer thread using
       //     the name in prod_names[i] and 
       //     integer i as the argument of function "Producer"
+      //  ...
 
       producers[i] = new Thread(prod_names[i]);
       producers[i] -> Fork((VoidFunctionPtr)Producer,(void *) i);
@@ -187,9 +185,10 @@ ProConTest()
       // Put the code to create and fork a new consumer thread using
       //     the name in cons_names[i] and 
       //     integer i as the argument of function "Consumer"
-
+      //  ...
       consumers[i] = new Thread(cons_names[i]);
       consumers[i] -> Fork((VoidFunctionPtr)Consumer, (void *)i);
 
     }
-}
+ }
+

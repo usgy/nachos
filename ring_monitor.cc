@@ -5,10 +5,9 @@
 
 extern "C" {
 #include <stdio.h>
-extern int exit(int st);
+  // extern int exit(int st);
 }
-
-#include "ring.h"
+#include "ring_monitor.h"
 
 //----------------------------------------------------------------------
 // slot::slot
@@ -43,6 +42,9 @@ Ring::Ring(int sz)
     in = 0;
     out = 0;
     buffer = new slot[size]; //allocate an array of slots.
+    notfull = new Condition("notfull");
+    notempty = new Condition("notempty");
+    bufferlock = new Lock("bufferlock");
 }
 
 //----------------------------------------------------------------------
@@ -71,9 +73,19 @@ Ring::~Ring()
 void
 Ring::Put(slot *message)
 {
+    bufferlock -> Acquire();
+    while(current == size){
+      notfull -> Wait(bufferlock);
+    }
+
     buffer[in].thread_id = message->thread_id;
     buffer[in].value = message->value;
     in = (in + 1) % size;
+
+    current++;
+
+    notempty -> Signal(bufferlock);
+    bufferlock -> Release();
 }
 
 //----------------------------------------------------------------------
@@ -81,13 +93,24 @@ Ring::Put(slot *message)
 // 	Get a message from the next full slot. We assume the
 //       caller has done necesaary synchronization.
 //
-//	"message" -- the message from the buffer
+//	"message" -- the message from  the buffer
 //----------------------------------------------------------------------
 
 void
 Ring::Get(slot *message)
 {
+    bufferlock -> Acquire();
+    while(current == 0){
+      notempty -> Wait(bufferlock);
+    }
+
     message->thread_id = buffer[out].thread_id;
     message->value = buffer[out].value;
     out = (out + 1) % size;
+
+    current--;
+
+    notfull -> Signal(bufferlock);
+    bufferlock -> Release;
 }
+
