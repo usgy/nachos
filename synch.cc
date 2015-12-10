@@ -197,9 +197,11 @@ void Lock::Acquire()
 
 void Lock::Release()
 {
+  cout << "Lock(before to be free)" << endl;
     ASSERT(IsHeldByCurrentThread());
     lockHolder = NULL;
     semaphore->V();
+    cout << "finish to be free" << endl;
 }
 
 //----------------------------------------------------------------------
