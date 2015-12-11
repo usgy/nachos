@@ -111,6 +111,6 @@ Ring::Get(slot *message)
     current--;
 
     notfull -> Signal(bufferlock);
-    bufferlock -> Release;
+    bufferlock -> Release();
 }
 
