@@ -405,18 +405,21 @@ Thread::RestoreUserState()
 //	purposes.
 //----------------------------------------------------------------------
 int SharedVariable;
-
+    Lock *lock = new Lock("lock");
 static void
+
 SimpleThread(int which)
 {
   int num, val;
     
     for (num = 0; num < 5; num++) {
-      val = SharedVariable;
-      printf("*** thread %d sees value %d \n", which, val);
-      kernel -> currentThread -> Yield();
-      SharedVariable = val + 1;
-      kernel -> currentThread -> Yield();
+        lock->Acquire();
+        val = SharedVariable;
+        printf("*** thread %d sees value %d \n", which, val);
+        kernel -> currentThread -> Yield();
+        SharedVariable = val + 1;
+        lock->Release();
+        kernel -> currentThread -> Yield();
     }
     val = SharedVariable;
     printf("Thread %d sees final value %d\n", which, val);
@@ -433,12 +436,38 @@ Thread::SelfTest(int n)
 {
     DEBUG(dbgThread, "Entering Thread::SelfTest");
 
-    Thread *t = new Thread("forked thread");
-    Thread *s = new Thread("forked thread");
+    for (int j = 0; j < n; j++)
+    {
+        Thread *t = new Thread("forked thread");
+        //Thread *s = new Thread("forked thread");
 
-    t->Fork((VoidFunctionPtr) SimpleThread, (void *) 1);
-    kernel->currentThread->Yield();
-    SimpleThread(0);
-    s->Fork((VoidFunctionPtr) SimpleThread, (void *) 2);
+        t->Fork((VoidFunctionPtr) SimpleThread, (void *) j);
+        kernel->currentThread->Yield();
+        //SimpleThread(n);
+        //s->Fork((VoidFunctionPtr) SimpleThread, (void *) 2);
+    }
 }
 
+//----------------------------------------------------------------------
+// Thread::Set_Priority
+//  
+//  
+//----------------------------------------------------------------------
+
+void Thread::Set_Priority(int p)
+{
+    priority += p;
+    if(priority > 40) priority=40;
+    if(priority < 0) priority = 0;
+}
+
+//----------------------------------------------------------------------
+// Thread::Get_Priority
+//  
+//  
+//----------------------------------------------------------------------
+
+int Thread::Get_Priority()
+{
+    return priority;
+}

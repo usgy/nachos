@@ -75,18 +75,18 @@ enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
 //  that only run in the kernel have a NULL address space.
 
 class Thread {
+  friend class Scheduler;
   private:
     // NOTE: DO NOT CHANGE the order of these first two members.
     // THEY MUST be in this position for SWITCH to work.
-    int *stackTop;			 // the current stack pointer
+  int *stackTop;  			 // the current stack pointer
     void *machineState[MachineStateSize];  // all registers except for stackTop
 
   public:
     Thread(char* debugName);		// initialize a Thread 
     ~Thread(); 				// deallocate a Thread
-					// NOTE -- thread being deleted
-					// must not be running when delete 
-					// is called
+				
+		    
 
     // basic thread operations
 
@@ -103,7 +103,7 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { cout << name; }
-    void SelfTest();		// test whether thread impl is working
+    void SelfTest(int n);		// test whether thread impl is working
 
   private:
     // some of the private data for this class is listed above
@@ -128,7 +128,12 @@ class Thread {
     void SaveUserState();		// save user-level register state
     void RestoreUserState();		// restore user-level register state
 
-    AddrSpace *space;			// User code this thread is running.
+    AddrSpace *space;	
+ private:
+  int priority;
+ public:
+  int Get_Priority();
+  void Set_Priority(int p);
 };
 
 // external function, dummy routine whose sole job is to call Thread::Print
