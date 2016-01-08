@@ -70,10 +70,10 @@ Scheduler::ReadyToRun (Thread *thread)
 
     thread->Set_Priority(1);
     thread->setStatus(READY);
-    readyList->Insert(thread);
+
     // --- insert the thread so that threads in the readyList are sorted 
     //in increasing order by "priority"---
-  
+    readyList->Insert(thread); // added
 }
 
 //----------------------------------------------------------------------
